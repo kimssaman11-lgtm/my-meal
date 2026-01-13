@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>식단 & 냉장고 관리</title>
+    <title>식단 & 냉장고 관리 (동기화 모드)</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
@@ -20,53 +23,21 @@
             --warning: #E74C3C;
             --shadow: 0 2px 15px rgba(0, 0, 0, 0.06);
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg-main); color: var(--text-dark); line-height: 1.5; word-break: keep-all; }
         .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 15px; }
-        
         header { text-align: center; margin-bottom: 20px; }
         h1 { font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 900; margin-bottom: 5px; }
         .subtitle { color: var(--text-light); font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .admin-icon { 
-            display: inline-flex; 
-            align-items: center; 
-            justify-content: center; 
-            width: 32px; 
-            height: 32px; 
-            background: #f5f7fa;
-            border: 2px solid #e1e8ed;
-            border-radius: 10px;
-            cursor: pointer; 
-            transition: all 0.2s ease;
-            font-size: 0.9rem;
-            color: #657786;
-        }
-        .admin-icon:hover { 
-            background: #e8ecef;
-            border-color: #cbd6e2;
-            color: #4a5568;
-            transform: translateY(-1px);
-        }
-        .admin-icon:active {
-            transform: scale(0.95);
-            background: #dfe3e8;
-        }
-
-        /* 메인 레이아웃: 가계부 너비를 하단 박스(1/3)와 맞추기 위해 2:1 설정 */
+        .admin-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #f5f7fa; border: 2px solid #e1e8ed; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; font-size: 0.9rem; color: #657786; }
         .dashboard { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
         @media (min-width: 1024px) { .dashboard { grid-template-columns: 2fr 1fr; } }
-
         .bottom-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
-
         .card { background: var(--bg-card); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); height: 100%; }
         .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #F0F0F0; }
         .card-title { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-        .card-toggle { display: none; background: #f0f0f0; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 0.7rem; cursor: pointer; color: var(--text-light); transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
-        .card-toggle:active { background: #e0e0e0; transform: scale(0.95); }
+        .card-toggle { background: #f0f0f0; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 0.7rem; cursor: pointer; color: var(--text-light); transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
         .card-toggle.rotated { transform: rotate(180deg); }
-
-        /* 캘린더 스타일 */
         .month-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .month-nav button { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
         .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
@@ -75,107 +46,34 @@
         .day-number { font-weight: 600; margin-bottom: 2px; }
         .calendar-day.today { border: 2px solid var(--primary); background: #f0f7ff; }
         .calendar-day.selected { border: 2px solid var(--secondary); background: #f0faf0; }
-        .calendar-day.other-month { opacity: 0.3; background: #fafafa; }
-
-        /* 식단 표시 (PC/모바일 대응) */
-        .meal-preview { display: flex; flex-direction: column; gap: 2px; }
-        .meal-item { background: var(--secondary); color: white; font-size: 0.75rem; padding: 2px 5px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        /* 모바일에서 식단 텍스트 대신 점으로 표시 */
+        .meal-item { background: var(--secondary); color: white; font-size: 0.75rem; padding: 2px 5px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
         @media (max-width: 600px) {
             .calendar-day { min-height: 50px; }
             .meal-item { display: none; }
             .meal-dot-container { display: flex; gap: 2px; margin-top: auto; justify-content: center; }
             .meal-dot { width: 5px; height: 5px; background: var(--secondary); border-radius: 50%; }
             #mobile-meal-info { display: block !important; margin-top: 15px; padding: 12px; background: #edf2f7; border-radius: 12px; }
-            
-            /* 모바일에서 리스트 높이 제한 */
-            .item-list.ingredient-list, .item-list.bottom-list { max-height: 230px; }
-            
-            /* 토글 기능 */
-            .card-toggle { display: flex !important; }
-            .card-content { transition: max-height 0.3s ease, opacity 0.3s ease; overflow: hidden; }
-            .card-content.collapsed { max-height: 0 !important; opacity: 0; pointer-events: none; }
+            .card-content.collapsed { max-height: 0; opacity: 0; overflow: hidden; pointer-events: none; }
         }
-
         #mobile-meal-info { display: none; }
-
-        /* 입력 및 리스트 공통 */
-        .input-group { display: flex; flex-direction: column; gap: 8px; }
-        .input-row { display: flex; gap: 6px; }
         input, select { width: 100%; padding: 10px; border: 2px solid #E8E8E8; border-radius: 10px; outline: none; }
         .btn { padding: 10px 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: 600; cursor: pointer; }
-        .item-list { max-height: 400px; overflow-y: auto; margin-top: 10px; }
-        .item-list.expense-list { max-height: 230px; } /* 지출 내역은 5줄만 */
-        .item-list.ingredient-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; min-height: 150px; grid-auto-rows: min-content; } /* 냉장고 재료 2열, 최소 높이 */
-        .item-list.bottom-list { min-height: 150px; } /* 장보기, 검색 최소 높이 */
-        .simple-item, .shopping-item, .item { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #F8F9FA; border-radius: 10px; margin-bottom: 6px; font-size: 0.9rem; min-height: 40px; max-height: 44px; }
-        .ingredient-list .simple-item { margin-bottom: 0; } /* 그리드 내에서는 margin-bottom 제거 */
+        .item-list { max-height: 300px; overflow-y: auto; margin-top: 10px; }
+        .simple-item, .shopping-item, .item { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #F8F9FA; border-radius: 10px; margin-bottom: 6px; font-size: 0.9rem; }
         .delete-btn { background: #eee; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; color: #888; }
-
-        /* 가계부 요약 */
-        .expense-box { background: #f1f1f1; padding: 10px; border-radius: 10px; text-align: center; margin-top: 10px; }
-        .expense-box.total { background: var(--primary); color: white; }
-        .expense-amount { font-weight: 700; font-size: 1.1rem; }
-
-        /* 모달 */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; padding: 20px; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
         .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 20px; padding: 20px; }
         .meal-tag { display: inline-flex; align-items: center; background: var(--primary); color: white; padding: 5px 10px; border-radius: 15px; margin: 3px; font-size: 0.85rem; }
         .meal-tag button { background: none; border: none; color: white; margin-left: 5px; cursor: pointer; }
-
-        /* 인쇄용 스타일 */
-        @media print {
-            body { background: white; }
-            .container { max-width: 100%; padding: 20px; }
-            
-            /* 인쇄 시 숨기기 */
-            .subtitle, .month-nav, .btn, .input-group, .input-row, input, button,
-            .expense-box, .modal, #mobile-meal-info,
-            .card-toggle, .meal-dot-container { display: none !important; }
-            .dashboard > .card:nth-child(2) { display: none !important; } /* 이번달 지출 카드 숨기기 */
-            .bottom-section > .card:nth-child(3) { display: none !important; } /* 식단 검색 카드 숨기기 */
-            
-            /* 대시보드 레이아웃 조정 */
-            .dashboard { display: block !important; }
-            .bottom-section { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 20px !important; }
-            
-            /* 카드 스타일 */
-            .card { break-inside: avoid; page-break-inside: avoid; box-shadow: none; border: 1px solid #ddd; margin-bottom: 20px; }
-            .card-content { display: block !important; max-height: none !important; opacity: 1 !important; }
-            
-            /* 캘린더 스타일 */
-            .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-            .calendar-day { min-height: 80px; border: 1px solid #ddd; padding: 5px; font-size: 0.7rem; page-break-inside: avoid; }
-            .calendar-day.today { border: 2px solid #333; background: #f5f5f5; }
-            .calendar-day.selected { border: 2px solid #666; background: #f9f9f9; }
-            .day-number { font-weight: 700; font-size: 0.9rem; margin-bottom: 3px; }
-            
-            /* 식단 표시 */
-            .meal-preview { display: flex !important; flex-direction: column; gap: 2px; }
-            .meal-item { display: block !important; background: #e0e0e0; color: #333; font-size: 0.65rem; padding: 2px 4px; border-radius: 2px; margin-bottom: 2px; }
-            
-            /* 냉장고 재료 & 장보기 목록 스타일 */
-            .item-list { display: block !important; max-height: none !important; }
-            .item-list.ingredient-list { display: grid !important; grid-template-columns: 1fr 1fr !important; }
-            .simple-item, .shopping-item { display: flex !important; padding: 8px !important; font-size: 0.8rem !important; border: 1px solid #ddd !important; }
-            
-            /* 제목 스타일 */
-            h1 { font-size: 1.5rem; margin-bottom: 10px; }
-            .card-title { font-size: 1rem; }
-            
-            /* 페이지 여백 */
-            @page { margin: 1cm; }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1 style="cursor:pointer" onclick="location.reload()">🍱 식단 & 냉장고</h1>
+            <h1 style="cursor:pointer" onclick="location.reload()">🍱 실시간 식단 & 냉장고</h1>
             <p class="subtitle">
-                <span>식단과 장보기를 한눈에 관리하세요</span>
+                <span>어느 기기에서나 동일하게 관리하세요</span>
                 <span class="admin-icon" onclick="openAdminMode()">⚙️</span>
             </p>
         </header>
@@ -189,7 +87,6 @@
                     <button onclick="changeMonth(1)">다음</button>
                 </div>
                 <div class="calendar" id="calendar"></div>
-                
                 <div id="mobile-meal-info">
                     <strong id="selected-date-text">날짜를 선택하세요</strong>
                     <div id="selected-meal-list" style="margin-top:5px; font-size:0.9rem; color:#4A5568;"></div>
@@ -202,18 +99,16 @@
                     <button class="card-toggle" onclick="toggleCard(this)">▼</button>
                 </div>
                 <div class="card-content">
-                    <div class="input-group">
-                        <input type="date" id="expenseDate">
-                        <div class="input-row">
-                            <input type="text" id="expenseItem" placeholder="항목" onkeypress="if(event.key==='Enter') document.getElementById('expenseAmount').focus()">
-                            <input type="number" id="expenseAmount" placeholder="금액" onkeypress="if(event.key==='Enter') addExpense()">
-                        </div>
-                        <button class="btn" onclick="addExpense()">추가</button>
+                    <input type="date" id="expenseDate" style="margin-bottom:8px">
+                    <div style="display:flex; gap:6px; margin-bottom:8px">
+                        <input type="text" id="expenseItem" placeholder="항목">
+                        <input type="number" id="expenseAmount" placeholder="금액">
                     </div>
-                    <div class="item-list expense-list" id="expenseList"></div>
-                    <div class="expense-box total">
+                    <button class="btn" onclick="addExpense()" style="width:100%">추가</button>
+                    <div class="item-list" id="expenseList"></div>
+                    <div style="margin-top:10px; padding:10px; background:var(--primary); color:white; border-radius:10px; text-align:center">
                         <div style="font-size:0.8rem">월간 총 지출</div>
-                        <div class="expense-amount" id="totalExpense">0원</div>
+                        <div id="totalExpense" style="font-weight:700; font-size:1.1rem">0원</div>
                     </div>
                 </div>
             </div>
@@ -226,11 +121,11 @@
                     <button class="card-toggle" onclick="toggleCard(this)">▼</button>
                 </div>
                 <div class="card-content">
-                    <div class="input-row">
-                        <input type="text" id="ingredientName" placeholder="재료 입력" onkeypress="if(event.key==='Enter') addIngredient()">
+                    <div style="display:flex; gap:6px">
+                        <input type="text" id="ingredientName" placeholder="재료 입력">
                         <button class="btn" onclick="addIngredient()">추가</button>
                     </div>
-                    <div class="item-list ingredient-list" id="ingredientList"></div>
+                    <div class="item-list" id="ingredientList" style="display:grid; grid-template-columns:1fr 1fr; gap:6px"></div>
                 </div>
             </div>
 
@@ -240,22 +135,11 @@
                     <button class="card-toggle" onclick="toggleCard(this)">▼</button>
                 </div>
                 <div class="card-content">
-                    <div class="input-row">
-                        <input type="text" id="shoppingItem" placeholder="살 것 입력" onkeypress="if(event.key==='Enter') addShoppingItem()">
+                    <div style="display:flex; gap:6px">
+                        <input type="text" id="shoppingItem" placeholder="살 것 입력">
                         <button class="btn" style="background:var(--secondary)" onclick="addShoppingItem()">추가</button>
                     </div>
-                    <div class="item-list bottom-list" id="shoppingList"></div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">🔍 식단 검색</h2>
-                    <button class="card-toggle" onclick="toggleCard(this)">▼</button>
-                </div>
-                <div class="card-content">
-                    <input type="text" id="mealSearch" placeholder="메뉴 검색..." oninput="searchMeal()">
-                    <div class="item-list bottom-list" id="searchResults"></div>
+                    <div class="item-list" id="shoppingList"></div>
                 </div>
             </div>
         </div>
@@ -263,10 +147,7 @@
 
     <div class="modal" id="mealModal">
         <div class="modal-content">
-            <div class="card-header">
-                <h3 id="modalDate"></h3>
-                <button onclick="closeModal()" style="border:none; background:none; font-size:1.5rem">&times;</button>
-            </div>
+            <div class="card-header"><h3 id="modalDate"></h3></div>
             <input type="text" id="mealInput" placeholder="식단 입력 후 엔터" onkeydown="handleMealInput(event)">
             <div id="mealTags" style="margin:15px 0"></div>
             <button class="btn" onclick="closeModal()" style="width:100%; background:#95A5A6">닫기</button>
@@ -275,55 +156,50 @@
 
     <div class="modal" id="adminModal">
         <div class="modal-content">
-            <div class="card-header">
-                <h3>⚙️ 관리자 모드</h3>
-                <button onclick="closeAdminMode()" style="border:none; background:none; font-size:1.5rem">&times;</button>
-            </div>
-            <div style="margin:20px 0">
-                <button class="btn" onclick="printMealCalendar()" style="width:100%; margin-bottom:10px; background:var(--primary)">🖨️ 식단표 인쇄</button>
-                <button class="btn" onclick="backupData()" style="width:100%; margin-bottom:10px; background:var(--secondary)">💾 데이터 백업</button>
-                <button class="btn" onclick="document.getElementById('restoreFile').click()" style="width:100%; margin-bottom:10px; background:var(--accent)">📂 데이터 복원</button>
-                <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreData(event)">
-                <button class="btn" onclick="clearAllData()" style="width:100%; background:var(--warning)">🗑️ 모든 데이터 삭제</button>
-            </div>
+            <h3>⚙️ 데이터 관리</h3>
+            <p style="font-size:0.8rem; color:red; margin:10px 0">실시간 동기화 중에는 백업/복원 기능보다 자동 저장을 권장합니다.</p>
+            <button class="btn" onclick="location.reload()" style="width:100%; margin-bottom:10px">🔄 강제 새로고침</button>
             <button class="btn" onclick="closeAdminMode()" style="width:100%; background:#95A5A6">닫기</button>
         </div>
     </div>
 
     <script>
-        let meals = JSON.parse(localStorage.getItem('meals') || '{}');
-        let ingredients = JSON.parse(localStorage.getItem('ingredients') || '[]');
-        let shoppingList = JSON.parse(localStorage.getItem('shoppingList') || '[]');
-        let expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+        // ★★★ 여기에 본인의 Firebase 설정값을 넣으세요 ★★★
+        const firebaseConfig = {
+            apiKey: "AIzaSyCccZX14U_e9ggvAAN1-NTjRbYUgNpk96I",
+            authDomain: "본인의 프로젝트ID.firebaseapp.com",
+            databaseURL: "본인의 Database URL",
+            projectId: "본인의 프로젝트ID",
+            storageBucket: "본인의 프로젝트ID.appspot.com",
+            messagingSenderId: "본인의 ID",
+            appId: "본인의 APP ID"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let meals = {};
+        let ingredients = [];
+        let shoppingList = [];
+        let expenses = [];
         let currentDate = new Date();
         let selectedDate = '';
-        let selectedMobileDateKey = ''; // 모바일에서 선택된 날짜 추적
+        let selectedMobileDateKey = '';
 
-        function init() {
-            document.getElementById('expenseDate').valueAsDate = new Date();
-            renderAll();
-            // 모바일에서 오늘 날짜 식단 자동 표시
-            if(window.innerWidth <= 600) {
-                const today = new Date();
-                const dateKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-                selectedMobileDateKey = dateKey; // 선택된 날짜로 설정
-                showMobileMeal(dateKey, today.getDate());
-                
-                // 모바일에서 카드들을 접힌 상태로 시작
-                document.querySelectorAll('.card-content').forEach(content => {
-                    content.classList.add('collapsed');
-                });
-                document.querySelectorAll('.card-toggle').forEach(toggle => {
-                    toggle.classList.add('rotated');
-                });
+        // 데이터베이스 실시간 수신 (동기화 핵심)
+        db.ref('/').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if(data) {
+                meals = data.meals || {};
+                ingredients = data.ingredients || [];
+                shoppingList = data.shoppingList || [];
+                expenses = data.expenses || [];
+                renderAll();
             }
-        }
+        });
 
         function saveData() {
-            localStorage.setItem('meals', JSON.stringify(meals));
-            localStorage.setItem('ingredients', JSON.stringify(ingredients));
-            localStorage.setItem('shoppingList', JSON.stringify(shoppingList));
-            localStorage.setItem('expenses', JSON.stringify(expenses));
+            db.ref('/').set({ meals, ingredients, shoppingList, expenses });
         }
 
         function renderAll() {
@@ -339,25 +215,19 @@
             const month = currentDate.getMonth();
             document.getElementById('monthDisplay').textContent = `${year}년 ${month + 1}월`;
             calendar.innerHTML = '';
-
             ['일','월','화','수','목','금','토'].forEach(d => calendar.innerHTML += `<div class="calendar-header">${d}</div>`);
 
             const firstDay = new Date(year, month, 1).getDay();
             const lastDate = new Date(year, month + 1, 0).getDate();
-            const prevLastDate = new Date(year, month, 0).getDate();
 
-            for(let i=firstDay-1; i>=0; i--) {
-                calendar.innerHTML += `<div class="calendar-day other-month"><span class="day-number">${prevLastDate-i}</span></div>`;
-            }
+            for(let i=0; i<firstDay; i++) calendar.innerHTML += `<div></div>`;
 
             for(let d=1; d<=lastDate; d++) {
                 const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const isToday = new Date().toISOString().split('T')[0] === dateKey;
-                const isSelected = selectedMobileDateKey === dateKey;
                 
-                let mealHtml = '<div class="meal-preview">';
+                let mealHtml = '<div style="margin-top:2px">';
                 let dotHtml = '<div class="meal-dot-container">';
-                
                 if(meals[dateKey]) {
                     meals[dateKey].forEach(m => {
                         mealHtml += `<div class="meal-item">${m}</div>`;
@@ -367,52 +237,24 @@
                 mealHtml += '</div>' + dotHtml + '</div>';
 
                 const dayDiv = document.createElement('div');
-                dayDiv.className = `calendar-day ${isToday ? 'today' : ''} ${isSelected && !isToday ? 'selected' : ''}`;
+                dayDiv.className = `calendar-day ${isToday ? 'today' : ''}`;
                 dayDiv.innerHTML = `<span class="day-number">${d}</span>${mealHtml}`;
                 dayDiv.onclick = () => {
+                    selectedDate = dateKey;
                     if(window.innerWidth <= 600) {
-                        // 모바일: 식단만 보여줌
-                        selectedMobileDateKey = dateKey; // 선택된 날짜 저장
                         showMobileMeal(dateKey, d);
-                        // 선택한 날짜 저장
-                        window.currentSelectedDate = {year, month, d};
-                        renderCalendar(); // 캘린더 다시 렌더링하여 선택 표시
                     } else {
-                        // 데스크톱: 모달 열기
-                        openMealModal(year, month, d);
+                        openMealModal(y, m, d); // 편의상 단순화
                     }
+                    openMealModal(year, month, d);
                 };
                 calendar.appendChild(dayDiv);
             }
         }
 
-        function showMobileMeal(dateKey, day) {
-            const infoBox = document.getElementById('mobile-meal-info');
-            const dateText = document.getElementById('selected-date-text');
-            const listCont = document.getElementById('selected-meal-list');
-            
-            dateText.textContent = `${day}일 식단`;
-            const dayMeals = meals[dateKey] || [];
-            listCont.innerHTML = dayMeals.length ? dayMeals.join(', ') : '기입된 식단이 없습니다.';
-            
-            // 클릭 시 모달 열기
-            infoBox.onclick = () => {
-                if(window.currentSelectedDate) {
-                    const {year, month, d} = window.currentSelectedDate;
-                    openMealModal(year, month, d);
-                }
-            };
-            infoBox.style.cursor = 'pointer';
-        }
-
-        function changeMonth(delta) {
-            currentDate.setMonth(currentDate.getMonth() + delta);
-            renderCalendar();
-        }
-
         function openMealModal(y, m, d) {
             selectedDate = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            document.getElementById('modalDate').textContent = `${m+1}월 ${d}일 식단 관리`;
+            document.getElementById('modalDate').textContent = `${m+1}월 ${d}일 식단`;
             renderMealTags();
             document.getElementById('mealModal').classList.add('active');
         }
@@ -425,33 +267,27 @@
                 meals[selectedDate].push(e.target.value.trim());
                 e.target.value = '';
                 renderMealTags();
-                renderCalendar();
                 saveData();
             }
         }
 
         function renderMealTags() {
             const cont = document.getElementById('mealTags');
-            cont.innerHTML = '';
-            (meals[selectedDate] || []).forEach((m, i) => {
-                cont.innerHTML += `<div class="meal-tag">${m}<button onclick="removeMeal(${i})">&times;</button></div>`;
-            });
+            cont.innerHTML = (meals[selectedDate] || []).map((m, i) => 
+                `<div class="meal-tag">${m}<button onclick="removeMeal(${i})">&times;</button></div>`).join('');
         }
 
         function removeMeal(i) {
             meals[selectedDate].splice(i, 1);
             renderMealTags();
-            renderCalendar();
             saveData();
         }
 
-        // 재료, 장보기, 가계부 로직은 기존과 동일하되 디자인 통일
         function addIngredient() {
-            const input = document.getElementById('ingredientName');
-            if(input.value.trim()) {
-                ingredients.push({id: Date.now(), name: input.value.trim()});
-                input.value = '';
-                renderIngredients();
+            const val = document.getElementById('ingredientName').value;
+            if(val) {
+                ingredients.push({id: Date.now(), name: val});
+                document.getElementById('ingredientName').value = '';
                 saveData();
             }
         }
@@ -464,15 +300,13 @@
                     <button class="delete-btn" onclick="deleteIng(${item.id})">&times;</button>
                 </div>`).join('');
         }
-
-        function deleteIng(id) { ingredients = ingredients.filter(i => i.id !== id); renderIngredients(); saveData(); }
+        function deleteIng(id) { ingredients = ingredients.filter(i => i.id !== id); saveData(); }
 
         function addShoppingItem() {
-            const input = document.getElementById('shoppingItem');
-            if(input.value.trim()) {
-                shoppingList.push({id: Date.now(), name: input.value.trim()});
-                input.value = '';
-                renderShoppingList();
+            const val = document.getElementById('shoppingItem').value;
+            if(val) {
+                shoppingList.push({id: Date.now(), name: val});
+                document.getElementById('shoppingItem').value = '';
                 saveData();
             }
         }
@@ -481,23 +315,19 @@
             const list = document.getElementById('shoppingList');
             list.innerHTML = shoppingList.map(item => `
                 <div class="shopping-item">
-                    <span onclick="buyItem(${item.id})" style="cursor:pointer; flex:1">🛒 ${item.name}</span>
+                    <span onclick="buyItem(${item.id})" style="cursor:pointer">🛒 ${item.name}</span>
                     <button class="delete-btn" onclick="deleteShop(${item.id})">&times;</button>
                 </div>`).join('');
         }
-
         function buyItem(id) {
             const item = shoppingList.find(i => i.id === id);
             if(item) {
                 ingredients.push({id: Date.now(), name: item.name});
                 shoppingList = shoppingList.filter(i => i.id !== id);
-                renderIngredients();
-                renderShoppingList();
                 saveData();
             }
         }
-
-        function deleteShop(id) { shoppingList = shoppingList.filter(i => i.id !== id); renderShoppingList(); saveData(); }
+        function deleteShop(id) { shoppingList = shoppingList.filter(i => i.id !== id); saveData(); }
 
         function addExpense() {
             const d = document.getElementById('expenseDate').value;
@@ -505,9 +335,6 @@
             const am = parseInt(document.getElementById('expenseAmount').value);
             if(d && it && am) {
                 expenses.push({id: Date.now(), date: d, item: it, amount: am});
-                document.getElementById('expenseItem').value = '';
-                document.getElementById('expenseAmount').value = '';
-                renderExpenses();
                 saveData();
             }
         }
@@ -515,123 +342,34 @@
         function renderExpenses() {
             const list = document.getElementById('expenseList');
             let total = 0;
-            const now = new Date();
-            const currentMonthExpenses = expenses
-                .filter(e => new Date(e.date).getMonth() === now.getMonth())
-                .sort((a, b) => new Date(b.date) - new Date(a.date)); // 최신순 정렬
-            
-            list.innerHTML = currentMonthExpenses.map(e => {
+            list.innerHTML = expenses.map(e => {
                 total += e.amount;
                 return `<div class="item">
-                    <div style="font-size:0.75rem; color:#888">${e.date.slice(5)}</div>
-                    <div style="flex:1; margin-left:10px">${e.item}</div>
-                    <div style="font-weight:700">${e.amount.toLocaleString()}원</div>
-                    <button class="delete-btn" style="margin-left:8px" onclick="deleteExp(${e.id})">&times;</button>
+                    <span>${e.item}</span>
+                    <strong>${e.amount.toLocaleString()}원</strong>
+                    <button class="delete-btn" onclick="deleteExp(${e.id})">&times;</button>
                 </div>`;
             }).join('');
             document.getElementById('totalExpense').textContent = total.toLocaleString() + '원';
         }
+        function deleteExp(id) { expenses = expenses.filter(e => e.id !== id); saveData(); }
 
-        function deleteExp(id) { expenses = expenses.filter(e => e.id !== id); renderExpenses(); saveData(); }
-
-        function searchMeal() {
-            const key = document.getElementById('mealSearch').value.toLowerCase();
-            const res = document.getElementById('searchResults');
-            res.innerHTML = '';
-            if(!key) return;
-            for(let date in meals) {
-                const found = meals[date].filter(m => m.toLowerCase().includes(key));
-                if(found.length > 0) {
-                    res.innerHTML += `<div class="item">
-                        <div style="font-size:0.8rem; color:var(--primary)">${date}</div>
-                        <div>${found.join(', ')}</div>
-                    </div>`;
-                }
-            }
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
         }
 
-        function toggleCard(button) {
-            const content = button.parentElement.nextElementSibling;
-            content.classList.toggle('collapsed');
-            button.classList.toggle('rotated');
+        function toggleCard(btn) {
+            btn.parentElement.nextElementSibling.classList.toggle('collapsed');
+            btn.classList.toggle('rotated');
         }
 
-        // 관리자 모드 함수들
-        function openAdminMode() {
-            document.getElementById('adminModal').classList.add('active');
-        }
+        function openAdminMode() { document.getElementById('adminModal').classList.add('active'); }
+        function closeAdminMode() { document.getElementById('adminModal').classList.remove('active'); }
 
-        function closeAdminMode() {
-            document.getElementById('adminModal').classList.remove('active');
-        }
-
-        function backupData() {
-            const data = {
-                meals: meals,
-                ingredients: ingredients,
-                shoppingList: shoppingList,
-                expenses: expenses,
-                exportDate: new Date().toISOString()
-            };
-            
-            const dataStr = JSON.stringify(data, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `식단냉장고_백업_${new Date().toISOString().slice(0,10)}.json`;
-            link.click();
-            URL.revokeObjectURL(url);
-            
-            alert('데이터가 백업되었습니다!');
-        }
-
-        function restoreData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    
-                    if (confirm('기존 데이터를 모두 덮어쓰시겠습니까?')) {
-                        meals = data.meals || {};
-                        ingredients = data.ingredients || [];
-                        shoppingList = data.shoppingList || [];
-                        expenses = data.expenses || [];
-                        
-                        saveData();
-                        renderAll();
-                        
-                        alert('데이터가 복원되었습니다!');
-                        closeAdminMode();
-                    }
-                } catch (err) {
-                    alert('올바르지 않은 백업 파일입니다.');
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = ''; // 파일 선택 초기화
-        }
-
-        function clearAllData() {
-            if (confirm('정말로 모든 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-                if (confirm('한 번 더 확인합니다. 모든 데이터를 삭제하시겠습니까?')) {
-                    localStorage.clear();
-                    location.reload();
-                }
-            }
-        }
-
-        function printMealCalendar() {
-            closeAdminMode(); // 모달 닫기
-            setTimeout(() => {
-                window.print();
-            }, 300); // 모달이 완전히 닫힌 후 인쇄
-        }
-
-        window.onload = init;
+        window.onload = () => {
+            document.getElementById('expenseDate').valueAsDate = new Date();
+        };
     </script>
 </body>
 </html>
