@@ -3,21 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🍱 식단 & 냉장고 (실시간 동기화)</title>
+    <title>식단 & 냉장고 관리</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
-    
     <style>
-        /* 사용자님이 처음 주신 원본 스타일 그대로 유지 */
-        :root {
-            --primary: #A8C5E5; --secondary: #B8D8BA; --accent: #E6D5B8;
-            --bg-main: #F8F9FA; --bg-card: #FFFFFF; --text-dark: #2C3E50;
-            --text-light: #7F8C8D; --warning: #E74C3C; --shadow: 0 2px 15px rgba(0, 0, 0, 0.06);
-        }
+        :root { --primary: #A8C5E5; --secondary: #B8D8BA; --accent: #E6D5B8; --bg-main: #F8F9FA; --bg-card: #FFFFFF; --text-dark: #2C3E50; --text-light: #7F8C8D; --warning: #E74C3C; --shadow: 0 2px 15px rgba(0, 0, 0, 0.06); }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg-main); color: var(--text-dark); line-height: 1.5; word-break: keep-all; }
         .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 15px; }
@@ -31,7 +24,8 @@
         .card { background: var(--bg-card); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); height: 100%; }
         .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #F0F0F0; }
         .card-title { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-        .card-toggle { display: none; background: #f0f0f0; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 0.7rem; cursor: pointer; color: var(--text-light); transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
+        .card-toggle { display: none; background: #f0f0f0; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 0.7rem; cursor: pointer; color: var(--text-light); display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .card-toggle.rotated { transform: rotate(180deg); }
         .month-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .month-nav button { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
         .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
@@ -39,19 +33,22 @@
         .calendar-day { min-height: 70px; border: 1px solid #F0F0F0; border-radius: 8px; padding: 4px; font-size: 0.75rem; cursor: pointer; background: #fff; display: flex; flex-direction: column; }
         .day-number { font-weight: 600; margin-bottom: 2px; }
         .calendar-day.today { border: 2px solid var(--primary); background: #f0f7ff; }
-        .meal-item { background: var(--secondary); color: white; font-size: 0.75rem; padding: 2px 5px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .meal-item { background: var(--secondary); color: white; font-size: 0.75rem; padding: 2px 5px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
         @media (max-width: 600px) {
-            .card-toggle { display: flex !important; }
-            .card-content.collapsed { max-height: 0; opacity: 0; overflow: hidden; }
+            .calendar-day { min-height: 50px; }
             .meal-item { display: none; }
             .meal-dot-container { display: flex; gap: 2px; margin-top: auto; justify-content: center; }
             .meal-dot { width: 5px; height: 5px; background: var(--secondary); border-radius: 50%; }
+            #mobile-meal-info { display: block !important; margin-top: 15px; padding: 12px; background: #edf2f7; border-radius: 12px; }
+            .card-toggle { display: flex !important; }
+            .card-content.collapsed { max-height: 0; opacity: 0; overflow: hidden; }
         }
-        #mobile-meal-info { display: none; padding: 12px; background: #edf2f7; border-radius: 12px; margin-top: 15px; }
-        input { width: 100%; padding: 10px; border: 2px solid #E8E8E8; border-radius: 10px; outline: none; margin-bottom: 8px; }
-        .btn { padding: 10px 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: 600; cursor: pointer; width: 100%; }
-        .item-list { max-height: 300px; overflow-y: auto; margin-top: 10px; }
-        .item, .simple-item, .shopping-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #F8F9FA; border-radius: 10px; margin-bottom: 6px; font-size: 0.9rem; }
+        #mobile-meal-info { display: none; }
+        input, select { width: 100%; padding: 10px; border: 2px solid #E8E8E8; border-radius: 10px; outline: none; }
+        .btn { padding: 10px 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: 600; cursor: pointer; width: 100%; margin-top: 8px; }
+        .item-list { max-height: 400px; overflow-y: auto; margin-top: 10px; }
+        .ingredient-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .simple-item, .shopping-item, .item { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #F8F9FA; border-radius: 10px; margin-bottom: 6px; font-size: 0.9rem; }
         .delete-btn { background: #eee; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; padding: 20px; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
@@ -62,7 +59,7 @@
     <div class="container">
         <header>
             <h1 style="cursor:pointer" onclick="location.reload()">🍱 식단 & 냉장고</h1>
-            <p class="subtitle"><span>실시간 동기화 모드</span> <span class="admin-icon" onclick="openAdminMode()">⚙️</span></p>
+            <p class="subtitle"><span>데이터 실시간 동기화 중</span> <span class="admin-icon" onclick="openAdminMode()">⚙️</span></p>
         </header>
 
         <div class="dashboard">
@@ -74,72 +71,49 @@
                     <button onclick="changeMonth(1)">다음</button>
                 </div>
                 <div class="calendar" id="calendar"></div>
-                <div id="mobile-meal-info">
-                    <strong id="selected-date-text">날짜를 선택하세요</strong>
-                    <div id="selected-meal-list"></div>
-                </div>
+                <div id="mobile-meal-info"><strong id="selected-date-text">날짜를 선택하세요</strong><div id="selected-meal-list" style="margin-top:5px; font-size:0.9rem; color:#4A5568;"></div></div>
             </div>
 
             <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">💰 이번 달 지출</h2>
-                    <button class="card-toggle" onclick="toggleCard(this)">▼</button>
-                </div>
+                <div class="card-header"><h2 class="card-title">💰 이번 달 지출</h2><button class="card-toggle" onclick="toggleCard(this)">▼</button></div>
                 <div class="card-content">
                     <input type="date" id="expenseDate">
-                    <input type="text" id="expenseItem" placeholder="항목">
-                    <input type="number" id="expenseAmount" placeholder="금액">
+                    <div style="display:flex; gap:6px; margin-top:8px">
+                        <input type="text" id="expenseItem" placeholder="항목" onkeydown="if(event.key==='Enter') document.getElementById('expenseAmount').focus()">
+                        <input type="number" id="expenseAmount" placeholder="금액" onkeydown="if(event.key==='Enter') addExpense()">
+                    </div>
                     <button class="btn" onclick="addExpense()">추가</button>
                     <div class="item-list" id="expenseList"></div>
-                    <div style="background:var(--primary); color:white; padding:10px; border-radius:10px; text-align:center; margin-top:10px;">
-                        총액: <span id="totalExpense">0원</span>
-                    </div>
+                    <div style="background:var(--primary); color:white; padding:10px; border-radius:10px; text-align:center; margin-top:10px">월 총액: <span id="totalExpense" style="font-weight:700">0원</span></div>
                 </div>
             </div>
         </div>
 
         <div class="bottom-section">
             <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">🧊 냉장고 재료</h2>
-                    <button class="card-toggle" onclick="toggleCard(this)">▼</button>
-                </div>
+                <div class="card-header"><h2 class="card-title">🧊 냉장고 재료</h2><button class="card-toggle" onclick="toggleCard(this)">▼</button></div>
                 <div class="card-content">
-                    <div style="display:flex; gap:5px">
-                        <input type="text" id="ingredientName" placeholder="재료 입력">
-                        <button class="btn" style="width:80px" onclick="addIngredient()">추가</button>
-                    </div>
-                    <div class="item-list" id="ingredientList"></div>
+                    <div style="display:flex; gap:6px"><input type="text" id="ingredientName" placeholder="재료 입력" onkeydown="if(event.key==='Enter') addIngredient()"><button class="btn" style="width:80px; margin-top:0" onclick="addIngredient()">추가</button></div>
+                    <div class="item-list ingredient-list" id="ingredientList"></div>
                 </div>
             </div>
-
             <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">🛒 장보기 목록</h2>
-                    <button class="card-toggle" onclick="toggleCard(this)">▼</button>
-                </div>
+                <div class="card-header"><h2 class="card-title">🛒 장보기 목록</h2><button class="card-toggle" onclick="toggleCard(this)">▼</button></div>
                 <div class="card-content">
-                    <div style="display:flex; gap:5px">
-                        <input type="text" id="shoppingItem" placeholder="살 것 입력">
-                        <button class="btn" style="width:80px; background:var(--secondary)" onclick="addShoppingItem()">추가</button>
-                    </div>
+                    <div style="display:flex; gap:6px"><input type="text" id="shoppingItem" placeholder="살 것 입력" onkeydown="if(event.key==='Enter') addShoppingItem()"><button class="btn" style="width:80px; margin-top:0; background:var(--secondary)" onclick="addShoppingItem()">추가</button></div>
                     <div class="item-list" id="shoppingList"></div>
                 </div>
             </div>
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">🔍 식단 검색</h2><button class="card-toggle" onclick="toggleCard(this)">▼</button></div>
+                <div class="card-content"><input type="text" id="mealSearch" placeholder="메뉴 검색..." oninput="searchMeal()"><div class="item-list" id="searchResults"></div></div>
+            </div>
         </div>
     </div>
 
-    <div class="modal" id="mealModal">
-        <div class="modal-content">
-            <h3 id="modalDate" style="margin-bottom:15px"></h3>
-            <input type="text" id="mealInput" placeholder="식단 입력 후 엔터" onkeydown="if(event.key==='Enter') addMeal()">
-            <div id="mealTags" style="margin:10px 0"></div>
-            <button class="btn" onclick="closeModal()" style="background:#95A5A6">닫기</button>
-        </div>
-    </div>
+    <div class="modal" id="mealModal"><div class="modal-content"><h3 id="modalDate" style="margin-bottom:15px"></h3><input type="text" id="mealInput" placeholder="입력 후 엔터" onkeydown="if(event.key==='Enter') addMeal()"><div id="mealTags" style="margin:15px 0"></div><button class="btn" style="background:#95A5A6" onclick="closeModal()">닫기</button></div></div>
 
     <script>
-        // ★ Firebase 설정 (사용자님의 키로 이미 교체 완료)
         const firebaseConfig = {
             apiKey: "AIzaSyCccZX14U_e9ggvAAN1-NTjRbYUgNpk96I",
             authDomain: "my-meal-data.firebaseapp.com",
@@ -154,9 +128,8 @@
 
         let meals = {}, ingredients = [], shoppingList = [], expenses = [];
         let currentDate = new Date();
-        let selectedDate = '';
+        let selectedDateKey = '';
 
-        // 실시간 데이터 수신 및 화면 갱신
         db.ref('/').on('value', (snapshot) => {
             const data = snapshot.val() || {};
             meals = data.meals || {};
@@ -177,83 +150,68 @@
             document.getElementById('monthDisplay').textContent = `${year}년 ${month + 1}월`;
             calendar.innerHTML = '';
             ['일','월','화','수','목','금','토'].forEach(d => calendar.innerHTML += `<div class="calendar-header">${d}</div>`);
-
             const firstDay = new Date(year, month, 1).getDay();
             const lastDate = new Date(year, month + 1, 0).getDate();
             for(let i=0; i<firstDay; i++) calendar.innerHTML += `<div></div>`;
-
             for(let d=1; d<=lastDate; d++) {
-                const dateKey = `${year}-${month+1}-${d}`;
-                const isToday = new Date().getDate() === d && new Date().getMonth() === month;
-                
-                let mealHtml = '<div style="margin-top:2px">';
-                if(meals[dateKey]) meals[dateKey].forEach(m => mealHtml += `<div class="meal-item">${m}</div>`);
-                mealHtml += '</div>';
-
-                const dayDiv = document.createElement('div');
-                dayDiv.className = `calendar-day ${isToday ? 'today' : ''}`;
-                dayDiv.innerHTML = `<span class="day-number">${d}</span>${mealHtml}`;
-                dayDiv.onclick = () => openMealModal(dateKey, d);
-                calendar.appendChild(dayDiv);
+                const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const isToday = new Date().toISOString().slice(0,10) === dateKey;
+                let html = `<span class="day-number">${d}</span><div class="meal-preview">`;
+                let dots = '<div class="meal-dot-container">';
+                if(meals[dateKey]) meals[dateKey].forEach(m => { html += `<div class="meal-item">${m}</div>`; dots += `<div class="meal-dot"></div>`; });
+                html += '</div>' + dots + '</div>';
+                const div = document.createElement('div');
+                div.className = `calendar-day ${isToday ? 'today' : ''}`;
+                div.innerHTML = html;
+                div.onclick = () => { selectedDateKey = dateKey; if(window.innerWidth <= 600) showMobileMeal(dateKey, d); openMealModal(dateKey, d); };
+                calendar.appendChild(div);
             }
         }
 
-        function openMealModal(dateKey, day) {
-            selectedDate = dateKey;
-            document.getElementById('modalDate').textContent = `${day}일 식단 관리`;
-            renderMealTags();
-            document.getElementById('mealModal').classList.add('active');
-        }
+        function openMealModal(key, d) { document.getElementById('modalDate').textContent = `${d}일 식단`; renderMealTags(); document.getElementById('mealModal').classList.add('active'); }
         function closeModal() { document.getElementById('mealModal').classList.remove('active'); }
         function addMeal() {
             const val = document.getElementById('mealInput').value;
             if(!val) return;
-            if(!meals[selectedDate]) meals[selectedDate] = [];
-            meals[selectedDate].push(val);
+            if(!meals[selectedDateKey]) meals[selectedDateKey] = [];
+            meals[selectedDateKey].push(val);
             document.getElementById('mealInput').value = '';
             renderMealTags(); saveData();
         }
-        function renderMealTags() {
-            document.getElementById('mealTags').innerHTML = (meals[selectedDate] || []).map((m, i) => 
-                `<div class="item">${m} <button class="delete-btn" onclick="removeMeal(${i})">&times;</button></div>`).join('');
-        }
-        function removeMeal(i) { meals[selectedDate].splice(i, 1); renderMealTags(); saveData(); }
+        function renderMealTags() { document.getElementById('mealTags').innerHTML = (meals[selectedDateKey] || []).map((m, i) => `<div class="item">${m}<button class="delete-btn" onclick="removeMeal(${i})">&times;</button></div>`).join(''); }
+        function removeMeal(i) { meals[selectedDateKey].splice(i, 1); renderMealTags(); saveData(); }
+        function showMobileMeal(k, d) { document.getElementById('selected-date-text').textContent = `${d}일 식단`; document.getElementById('selected-meal-list').textContent = (meals[k] || []).join(', ') || '식단이 없습니다.'; }
 
-        function addIngredient() {
-            const val = document.getElementById('ingredientName').value;
-            if(val) { ingredients.push(val); document.getElementById('ingredientName').value = ''; saveData(); }
-        }
-        function renderIngredients() {
-            document.getElementById('ingredientList').innerHTML = ingredients.map((ing, i) => 
-                `<div class="simple-item"><span>${ing}</span><button class="delete-btn" onclick="ingredients.splice(${i},1);saveData()">&times;</button></div>`).join('');
-        }
+        function addIngredient() { const v = document.getElementById('ingredientName').value; if(v) { ingredients.push({id:Date.now(), name:v}); document.getElementById('ingredientName').value = ''; saveData(); } }
+        function renderIngredients() { document.getElementById('ingredientList').innerHTML = ingredients.map(i => `<div class="simple-item"><span>${i.name}</span><button class="delete-btn" onclick="deleteIng(${i.id})">&times;</button></div>`).join(''); }
+        function deleteIng(id) { ingredients = ingredients.filter(i => i.id !== id); saveData(); }
 
-        function addShoppingItem() {
-            const val = document.getElementById('shoppingItem').value;
-            if(val) { shoppingList.push(val); document.getElementById('shoppingItem').value = ''; saveData(); }
-        }
-        function renderShoppingList() {
-            document.getElementById('shoppingList').innerHTML = shoppingList.map((item, i) => 
-                `<div class="shopping-item"><span>🛒 ${item}</span><button class="delete-btn" onclick="shoppingList.splice(${i},1);saveData()">&times;</button></div>`).join('');
-        }
+        function addShoppingItem() { const v = document.getElementById('shoppingItem').value; if(v) { shoppingList.push({id:Date.now(), name:v}); document.getElementById('shoppingItem').value = ''; saveData(); } }
+        function renderShoppingList() { document.getElementById('shoppingList').innerHTML = shoppingList.map(s => `<div class="shopping-item"><span>🛒 ${s.name}</span><button class="delete-btn" onclick="deleteShop(${s.id})">&times;</button></div>`).join(''); }
+        function deleteShop(id) { shoppingList = shoppingList.filter(s => s.id !== id); saveData(); }
 
-        function addExpense() {
-            const d = document.getElementById('expenseDate').value;
-            const it = document.getElementById('expenseItem').value;
-            const am = parseInt(document.getElementById('expenseAmount').value);
-            if(d && it && am) { expenses.push({date:d, item:it, amount:am}); saveData(); }
+        function addExpense() { 
+            const d = document.getElementById('expenseDate').value, it = document.getElementById('expenseItem').value, am = parseInt(document.getElementById('expenseAmount').value);
+            if(d && it && am) { expenses.push({id:Date.now(), date:d, item:it, amount:am}); document.getElementById('expenseItem').value = ''; document.getElementById('expenseAmount').value = ''; saveData(); }
         }
         function renderExpenses() {
             let total = 0;
-            document.getElementById('expenseList').innerHTML = expenses.map((e, i) => {
+            document.getElementById('expenseList').innerHTML = expenses.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(e => {
                 total += e.amount;
-                return `<div class="item"><span>${e.item}</span><b>${e.amount.toLocaleString()}원</b><button class="delete-btn" onclick="expenses.splice(${i},1);saveData()">&times;</button></div>`;
+                return `<div class="item"><div style="font-size:0.75rem">${e.date.slice(5)}</div><div style="flex:1;margin-left:10px">${e.item}</div><b>${e.amount.toLocaleString()}원</b><button class="delete-btn" style="margin-left:8px" onclick="deleteExp(${e.id})">&times;</button></div>`;
             }).join('');
             document.getElementById('totalExpense').textContent = total.toLocaleString() + '원';
         }
+        function deleteExp(id) { expenses = expenses.filter(e => e.id !== id); saveData(); }
 
-        function changeMonth(delta) { currentDate.setMonth(currentDate.getMonth() + delta); renderCalendar(); }
-        function toggleCard(btn) { btn.parentElement.nextElementSibling.classList.toggle('collapsed'); }
+        function searchMeal() {
+            const k = document.getElementById('mealSearch').value.toLowerCase(), res = document.getElementById('searchResults');
+            res.innerHTML = ''; if(!k) return;
+            for(let d in meals) { const f = meals[d].filter(m => m.toLowerCase().includes(k)); if(f.length) res.innerHTML += `<div class="item"><div style="font-size:0.8rem; color:var(--primary)">${d}</div><div>${f.join(', ')}</div></div>`; }
+        }
+
+        function changeMonth(d) { currentDate.setMonth(currentDate.getMonth() + d); renderCalendar(); }
+        function toggleCard(b) { b.parentElement.nextElementSibling.classList.toggle('collapsed'); b.classList.toggle('rotated'); }
         function openAdminMode() { if(confirm('인쇄하시겠습니까?')) window.print(); }
         window.onload = () => { document.getElementById('expenseDate').valueAsDate = new Date(); };
     </script>
