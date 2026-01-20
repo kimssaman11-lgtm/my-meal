@@ -74,7 +74,6 @@
         .ingredient-list { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px; }
         .simple-item, .shopping-item, .item { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #F8F9FA; border-radius: 10px; margin-bottom: 6px; font-size: 0.9rem; }
         
-        /* [복구] 원래의 깔끔한 원형 삭제 버튼 디자인 */
         .delete-btn { 
             background: #eee; 
             border: none; 
@@ -90,13 +89,11 @@
             flex-shrink: 0;
             margin-left: 8px;
         }
-        .delete-btn:hover { background: #e0e0e0; color: #e74c3c; }
         
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; padding: 20px; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
         .modal-content { background: white; width: 100%; max-width: 450px; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         
-        /* [수정] 식단 태그 내 삭제 버튼 정렬 */
         .meal-tag { 
             display: inline-flex; 
             align-items: center; 
@@ -160,7 +157,7 @@
                     <button onclick="changeMonth(1)">다음</button>
                 </div>
                 <div class="calendar" id="calendar"></div>
-                <div id="mobile-meal-info"><strong id="selected-date-text">날짜를 선택하세요</strong><div id="selected-meal-list" style="margin-top:5px; font-size:0.9rem; color:#4A5568;"></div></div>
+                <div id="mobile-meal-info"><div id="selected-meal-list" style="font-size:0.9rem; color:#4A5568;"></div></div>
             </div>
 
             <div class="card">
@@ -195,7 +192,7 @@
             <div class="card">
                 <div class="card-header"><h2 class="card-title">🛒 장보기 목록</h2><button class="card-toggle" onclick="toggleCard(this)">▼</button></div>
                 <div class="card-content">
-                    <div style="display:flex; gap:6px"><input type="text" id="shoppingItem" placeholder="살 것 입력" onkeydown="if(event.key==='Enter') addShoppingItem()"><button class="btn" style="width:80px; margin-top:0; background:var(--primary)" onclick="addShoppingItem()">추가</button></div>
+                    <div style="display:flex; gap:6px"><input type="text" id="shoppingItem" placeholder="살 것 입력" onkeydown="if(event.key==='Enter') addShoppingItem()"><button class="btn" style="width:80px; margin-top:0" onclick="addShoppingItem()">추가</button></div>
                     <div class="item-list" id="shoppingList"></div>
                 </div>
             </div>
@@ -311,7 +308,11 @@
         function removeMeal(i) { meals[selectedDateKey].splice(i, 1); renderMealTags(); saveData(); }
         function openMealModal(k, d) { document.getElementById('modalDate').textContent = `${currentDate.getMonth()+1}월 ${d}일 식단 관리`; renderMealTags(); document.getElementById('mealModal').classList.add('active'); setTimeout(() => document.getElementById('mealInput').focus(), 100); }
         function closeModal() { document.getElementById('mealModal').classList.remove('active'); }
-        function showMobileMeal(k, d) { const list = (meals[k] || []).map(m => typeof m === 'object' ? m.text : m); document.getElementById('selected-date-text').textContent = `${d}일 식단`; document.getElementById('selected-meal-list').textContent = list.join(', ') || '식단이 없습니다.'; }
+        function showMobileMeal(k, d) { 
+            const list = (meals[k] || []).map(m => typeof m === 'object' ? m.text : m);
+            document.getElementById('selected-meal-list').textContent = list.join(', ') || '식단이 없습니다.'; 
+        }
+
         function moveToFridge(id) { const idx = shoppingList.findIndex(s => s.id === id); if (idx > -1) { const item = shoppingList.splice(idx, 1)[0]; ingredients.push({id: Date.now(), name: item.name}); saveData(); } }
         function setSort(type) { currentSort = type; document.getElementById('sortNew').classList.toggle('active', type === 'new'); document.getElementById('sortOld').classList.toggle('active', type === 'old'); renderExpenses(); }
         function renderExpenses() { let total = 0, sorted = [...expenses]; if (currentSort === 'new') sorted.sort((a,b) => new Date(b.date) - new Date(a.date)); else sorted.sort((a,b) => new Date(a.date) - new Date(b.date)); document.getElementById('expenseList').innerHTML = sorted.map(e => { total += e.amount; return `<div class="item"><div style="font-size:0.75rem; color:#888">${e.date.slice(5)}</div><div style="flex:1;margin-left:10px">${e.item}</div><b>${e.amount.toLocaleString()}원</b><button class="delete-btn" onclick="deleteExp(${e.id})">&times;</button></div>`; }).join(''); document.getElementById('totalExpense').textContent = total.toLocaleString() + '원'; }
