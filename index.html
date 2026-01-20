@@ -10,7 +10,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #A8C5E5; --secondary: #B8D8BA; --accent: #E6D5B8; --bg-main: #F8F9FA; --bg-card: #FFFFFF; --text-dark: #2C3E50; --text-light: #7F8C8D; --warning: #E74C3C; --shadow: 0 2px 15px rgba(0, 0, 0, 0.06); }
+        :root { 
+            --primary: #A8C5E5;    /* 메인 테마 (블루) */
+            --secondary: #B8D8BA;  /* 보조 테마 (그린) */
+            --accent: #E6D5B8; 
+            --pink-item: #FAD0C4;  /* 식단 전용 핑크 */
+            --green-item: #B8D8BA; /* 식단 전용 그린 */
+            --bg-main: #F8F9FA; --bg-card: #FFFFFF; --text-dark: #2C3E50; --text-light: #7F8C8D; --warning: #E74C3C; --shadow: 0 2px 15px rgba(0, 0, 0, 0.06); 
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg-main); color: var(--text-dark); line-height: 1.5; word-break: keep-all; }
         .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 15px; }
@@ -18,86 +25,121 @@
         h1 { font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 900; margin-bottom: 5px; }
         .subtitle { color: var(--text-light); font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .admin-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #f5f7fa; border: 2px solid #e1e8ed; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; font-size: 0.9rem; color: #657786; }
+        
         .dashboard { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
         @media (min-width: 1024px) { .dashboard { grid-template-columns: 2fr 1fr; } }
         .bottom-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+        
         .card { background: var(--bg-card); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); height: 100%; }
         .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #F0F0F0; }
         .card-title { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-        .card-toggle { display: none; background: #f0f0f0; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 0.7rem; cursor: pointer; color: var(--text-light); display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .card-toggle { display: none; background: #f0f0f0; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 0.7rem; cursor: pointer; color: var(--text-light); transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
         .card-toggle.rotated { transform: rotate(180deg); }
+
         .month-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .month-nav button { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+        .month-nav button { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        
         .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .calendar-header { text-align: center; font-weight: 600; font-size: 0.75rem; color: var(--text-light); padding-bottom: 5px; }
         .calendar-day { min-height: 70px; border: 1px solid #F0F0F0; border-radius: 8px; padding: 4px; font-size: 0.75rem; cursor: pointer; background: #fff; display: flex; flex-direction: column; }
         .day-number { font-weight: 600; margin-bottom: 2px; }
         .calendar-day.today { border: 2px solid var(--primary); background: #f0f7ff; }
-        .meal-item { background: var(--secondary); color: white; font-size: 0.75rem; padding: 2px 5px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+
+        .meal-item { font-size: 0.75rem; padding: 2px 5px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; font-weight: 500; }
+        .meal-item.color-green { background: var(--green-item); color: white; }
+        .meal-item.color-pink { background: var(--pink-item); color: #855b5b; }
 
         @media (max-width: 600px) {
             .calendar-day { min-height: 50px; }
             .meal-item { display: none; }
             .meal-dot-container { display: flex; gap: 2px; margin-top: auto; justify-content: center; }
-            .meal-dot { width: 5px; height: 5px; background: var(--secondary); border-radius: 50%; }
+            .meal-dot { width: 5px; height: 5px; border-radius: 50%; }
+            .meal-dot.color-green { background: var(--green-item); }
+            .meal-dot.color-pink { background: var(--pink-item); }
             #mobile-meal-info { display: block !important; margin-top: 15px; padding: 12px; background: #edf2f7; border-radius: 12px; }
             .card-toggle { display: flex !important; }
             .card-content.collapsed { max-height: 0; opacity: 0; overflow: hidden; }
             .pc-row { flex-direction: column; } 
         }
 
-        #mobile-meal-info { display: none; }
         input, select { width: 100%; padding: 10px; border: 2px solid #E8E8E8; border-radius: 10px; outline: none; }
         .btn { padding: 10px 15px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: 600; cursor: pointer; width: 100%; }
         
-        /* [조정] 지출 입력창 디자인 정교화 */
         .pc-row { display: flex; gap: 6px; align-items: center; margin-top: 10px; }
-        .pc-row input { flex: 1.5; height: 42px; } /* 높이 고정으로 일직선 유지 */
-        .pc-row .btn-small { 
-            width: 70px; 
-            height: 42px; 
-            padding: 0; 
-            font-size: 0.85rem; 
-            background: var(--primary); 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            flex-shrink: 0;
-            opacity: 0.9;
-        }
+        .pc-row input { flex: 1.5; height: 42px; }
+        .pc-row .btn-small { width: 70px; height: 42px; padding: 0; font-size: 0.85rem; background: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
         .item-list { overflow-y: auto; margin-top: 12px; }
-        .expense-list { max-height: 230px !important; }
-
-        /* 냉장고 재료 2열 유지 */
-        .ingredient-list { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px; max-height: 230px !important; }
+        .expense-list, .ingredient-list { max-height: 230px !important; }
+        .ingredient-list { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px; }
         .simple-item, .shopping-item, .item { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #F8F9FA; border-radius: 10px; margin-bottom: 6px; font-size: 0.9rem; }
-        .ingredient-list .simple-item { margin-bottom: 0; }
         
-        .shopping-item { cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
-        .shopping-item:hover { border-color: var(--secondary); background: #f0faf0; }
-        .delete-btn { background: #eee; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; }
+        /* [복구] 원래의 깔끔한 원형 삭제 버튼 디자인 */
+        .delete-btn { 
+            background: #eee; 
+            border: none; 
+            width: 24px; 
+            height: 24px; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            color: #888;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+        .delete-btn:hover { background: #e0e0e0; color: #e74c3c; }
         
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; padding: 20px; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
-        .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .meal-tag { display: inline-flex; align-items: center; background: var(--primary); color: white; padding: 5px 15px; border-radius: 20px; margin: 4px; font-size: 0.85rem; }
-        .meal-tag button { background: none; border: none; color: white; margin-left: 8px; cursor: pointer; }
+        .modal-content { background: white; width: 100%; max-width: 450px; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         
-        /* [조정] 정렬 버튼 우측 정렬 및 색상 */
-        .sort-btn-group { display: flex; justify-content: flex-end; gap: 5px; margin-bottom: 10px; margin-top: 5px; }
-        .sort-btn { padding: 4px 12px; font-size: 0.75rem; border: 1px solid #e0e0e0; background: #fdfdfd; color: #888; border-radius: 20px; cursor: pointer; transition: 0.2s; }
-        .sort-btn.active { background: #5D6D7E; color: white; border-color: #5D6D7E; font-weight: 500; }
+        /* [수정] 식단 태그 내 삭제 버튼 정렬 */
+        .meal-tag { 
+            display: inline-flex; 
+            align-items: center; 
+            padding: 5px 12px; 
+            border-radius: 20px; 
+            margin: 4px; 
+            font-size: 0.85rem; 
+            font-weight: 500; 
+            color: white; 
+        }
+        .meal-tag.color-green { background: var(--green-item); }
+        .meal-tag.color-pink { background: var(--pink-item); color: #855b5b; }
+        .meal-tag button { 
+            background: rgba(255,255,255,0.3); 
+            border: none; 
+            color: inherit; 
+            margin-left: 8px; 
+            cursor: pointer; 
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
+        .meal-input-wrapper { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+        .color-option-group { display: flex; gap: 8px; flex-shrink: 0; }
+        .color-option { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .color-option.green { background: var(--green-item); }
+        .color-option.pink { background: var(--pink-item); }
+        .color-option.active { border-color: #555; transform: scale(1.1); }
 
-        /* 인쇄 최적화 */
+        .sort-btn-group { display: flex; justify-content: flex-end; gap: 5px; margin-bottom: 10px; }
+        .sort-btn { padding: 4px 12px; font-size: 0.75rem; border: 1px solid #e0e0e0; background: #fdfdfd; color: #888; border-radius: 20px; cursor: pointer; }
+        .sort-btn.active { background: #5D6D7E; color: white; border-color: #5D6D7E; }
+
         @media print {
-            .subtitle, .admin-icon, .btn, .btn-small, .month-nav, .card:not(:first-child), .bottom-section, .modal, .card-toggle, .meal-dot-container, #mobile-meal-info, input, .sort-btn-group {
-                display: none !important;
-            }
+            .subtitle, .admin-icon, .btn, .btn-small, .month-nav, .card:not(:first-child), .bottom-section, .modal, .card-toggle, .meal-dot-container, #mobile-meal-info, input, .sort-btn-group { display: none !important; }
             .dashboard { display: block !important; }
             .card { box-shadow: none !important; border: 1px solid #eee !important; padding: 0 !important; }
             .calendar-day { min-height: 90px !important; border: 1px solid #ddd !important; }
-            .meal-item { display: block !important; background: #f0f0f0 !important; color: #333 !important; border: 1px solid #ccc !important; }
             @page { margin: 1.5cm; }
         }
     </style>
@@ -130,7 +172,6 @@
                         <input type="number" id="expenseAmount" placeholder="금액" onkeydown="if(event.key==='Enter') addExpense()">
                         <button class="btn btn-small" onclick="addExpense()">추가</button>
                     </div>
-                    
                     <div style="margin-top:15px">
                         <div class="sort-btn-group">
                             <button class="sort-btn active" id="sortNew" onclick="setSort('new')">최신순</button>
@@ -151,15 +192,13 @@
                     <div class="item-list ingredient-list" id="ingredientList"></div>
                 </div>
             </div>
-            
             <div class="card">
                 <div class="card-header"><h2 class="card-title">🛒 장보기 목록</h2><button class="card-toggle" onclick="toggleCard(this)">▼</button></div>
                 <div class="card-content">
-                    <div style="display:flex; gap:6px"><input type="text" id="shoppingItem" placeholder="살 것 입력" onkeydown="if(event.key==='Enter') addShoppingItem()"><button class="btn" style="width:80px; margin-top:0; background:var(--secondary)" onclick="addShoppingItem()">추가</button></div>
+                    <div style="display:flex; gap:6px"><input type="text" id="shoppingItem" placeholder="살 것 입력" onkeydown="if(event.key==='Enter') addShoppingItem()"><button class="btn" style="width:80px; margin-top:0; background:var(--primary)" onclick="addShoppingItem()">추가</button></div>
                     <div class="item-list" id="shoppingList"></div>
                 </div>
             </div>
-            
             <div class="card">
                 <div class="card-header"><h2 class="card-title">🔍 식단 검색</h2><button class="card-toggle" onclick="toggleCard(this)">▼</button></div>
                 <div class="card-content"><input type="text" id="mealSearch" placeholder="메뉴 검색..." oninput="searchMeal()"><div class="item-list" id="searchResults"></div></div>
@@ -167,9 +206,28 @@
         </div>
     </div>
 
-    <div class="modal" id="mealModal"><div class="modal-content"><div class="card-header"><h3 id="modalDate"></h3><button onclick="closeModal()" style="border:none; background:none; font-size:1.5rem; cursor:pointer">&times;</button></div><div style="padding:10px 0"><input type="text" id="mealInput" placeholder="식단 입력 후 엔터" onkeydown="if(event.key==='Enter') addMeal()"><div id="mealTags" style="margin:15px 0; display:flex; flex-wrap:wrap"></div><button class="btn" style="background:#8492a6" onclick="closeModal()">닫기</button></div></div></div>
+    <div class="modal" id="mealModal">
+        <div class="modal-content">
+            <div class="card-header"><h3 id="modalDate"></h3><button onclick="closeModal()" style="border:none; background:none; font-size:1.5rem; cursor:pointer">&times;</button></div>
+            <div style="padding:10px 0">
+                <div class="meal-input-wrapper">
+                    <input type="text" id="mealInput" placeholder="식단 입력 후 엔터" onkeydown="if(event.key==='Enter') addMeal()">
+                    <div class="color-option-group">
+                        <div class="color-option green active" onclick="selectMealColor('green')" title="그린"></div>
+                        <div class="color-option pink" onclick="selectMealColor('pink')" title="핑크"></div>
+                    </div>
+                </div>
+                <div id="mealTags" style="margin:15px 0; display:flex; flex-wrap:wrap"></div>
+                <button class="btn" style="background:#8492a6" onclick="closeModal()">닫기</button>
+            </div>
+        </div>
+    </div>
 
-    <div class="modal" id="adminModal"><div class="modal-content"><div class="card-header"><h3>⚙️ 데이터 관리</h3><button onclick="closeAdminMode()" style="border:none; background:none; font-size:1.5rem; cursor:pointer">&times;</button></div><div style="padding:15px 0"><div style="background:#f8f9fa; padding:12px; border-radius:10px; font-size:0.85rem; color:#555; margin-bottom:15px; border-left:4px solid var(--primary);">💡 <b>데이터 안내</b><br>• 모든 내용은 Firebase 클라우드에 실시간 저장됩니다.<br>• <b>백업:</b> 데이터를 JSON 파일로 내려받아 보관합니다.<br>• <b>복원:</b> 백업 파일을 업로드하여 덮어씁니다.</div><button class="btn" onclick="backupData()" style="background:var(--primary)">💾 내 컴퓨터에 백업하기</button><button class="btn" onclick="window.print()" style="background:var(--secondary); margin-top:10px">🖨️ 식단표 인쇄하기</button><div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px"><p style="font-size:0.8rem; color:var(--text-light); margin-bottom:8px">📂 백업 파일로 복원하기</p><input type="file" id="restoreFile" accept=".json" onchange="restoreData(event)"></div></div><button class="btn" style="background:#8492a6" onclick="closeAdminMode()">닫기</button></div></div>
+    <div class="modal" id="adminModal">
+        <div class="modal-content">
+            <div class="card-header"><h3>⚙️ 데이터 관리</h3><button onclick="closeAdminMode()" style="border:none; background:none; font-size:1.5rem; cursor:pointer">&times;</button></div>
+            <div style="padding:15px 0"><div style="background:#f8f9fa; padding:12px; border-radius:10px; font-size:0.85rem; color:#555; margin-bottom:15px; border-left:4px solid var(--primary);">💡 <b>데이터 안내</b><br>• 모든 내용은 실시간 저장됩니다.<br>• <b>백업:</b> 데이터를 JSON 파일로 내려받습니다.<br>• <b>복원:</b> 백업 파일을 업로드하여 덮어씁니다.</div><button class="btn" onclick="backupData()" style="background:#5D6D7E">💾 내 컴퓨터에 백업</button><button class="btn" onclick="window.print()" style="background:#8492a6; margin-top:10px">🖨️ 식단표 인쇄하기</button><div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px"><input type="file" id="restoreFile" accept=".json" onchange="restoreData(event)"></div></div><button class="btn" style="background:#8492a6" onclick="closeAdminMode()">닫기</button></div>
+    </div>
 
     <script>
         const firebaseConfig = {
@@ -185,62 +243,45 @@
         const db = firebase.database();
 
         let meals = {}, ingredients = [], shoppingList = [], expenses = [];
-        let currentDate = new Date();
-        let selectedDateKey = '';
-        let currentSort = 'new';
+        let currentDate = new Date(), selectedDateKey = '', currentSort = 'new', currentMealColor = 'green';
 
         window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(); closeAdminMode(); } });
 
         db.ref('/').on('value', (snapshot) => {
             const data = snapshot.val() || {};
-            meals = data.meals || {};
-            ingredients = data.ingredients || [];
-            shoppingList = data.shoppingList || [];
-            expenses = data.expenses || [];
+            meals = data.meals || {}; ingredients = data.ingredients || []; shoppingList = data.shoppingList || []; expenses = data.expenses || [];
             renderAll();
         });
 
         function saveData() { db.ref('/').set({ meals, ingredients, shoppingList, expenses }); }
         function renderAll() { renderCalendar(); renderIngredients(); renderShoppingList(); renderExpenses(); }
 
-        function moveToFridge(id) {
-            const idx = shoppingList.findIndex(s => s.id === id);
-            if (idx > -1) {
-                const item = shoppingList.splice(idx, 1)[0];
-                ingredients.push({id: Date.now(), name: item.name});
-                saveData();
-            }
+        function selectMealColor(color) {
+            currentMealColor = color;
+            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
+            document.querySelector(`.color-option.${color}`).classList.add('active');
         }
 
-        function setSort(type) {
-            currentSort = type;
-            document.getElementById('sortNew').classList.toggle('active', type === 'new');
-            document.getElementById('sortOld').classList.toggle('active', type === 'old');
-            renderExpenses();
+        function addMeal() {
+            const v = document.getElementById('mealInput').value.trim();
+            if(!v) return;
+            if(!meals[selectedDateKey]) meals[selectedDateKey] = [];
+            meals[selectedDateKey].push({ text: v, color: currentMealColor });
+            document.getElementById('mealInput').value = '';
+            renderMealTags(); saveData();
         }
 
-        function renderExpenses() {
-            let total = 0;
-            let sorted = [...expenses];
-            if (currentSort === 'new') sorted.sort((a,b) => new Date(b.date) - new Date(a.date));
-            else sorted.sort((a,b) => new Date(a.date) - new Date(b.date));
-            document.getElementById('expenseList').innerHTML = sorted.map(e => {
-                total += e.amount;
-                return `<div class="item"><div style="font-size:0.75rem">${e.date.slice(5)}</div><div style="flex:1;margin-left:10px">${e.item}</div><b>${e.amount.toLocaleString()}원</b><button class="delete-btn" style="margin-left:8px" onclick="deleteExp(${e.id})">&times;</button></div>`;
+        function renderMealTags() {
+            document.getElementById('mealTags').innerHTML = (meals[selectedDateKey] || []).map((m, i) => {
+                const text = typeof m === 'object' ? m.text : m;
+                const colorClass = typeof m === 'object' ? `color-${m.color}` : 'color-green';
+                return `<div class="meal-tag ${colorClass}"><span>${text}</span><button onclick="removeMeal(${i})">&times;</button></div>`;
             }).join('');
-            document.getElementById('totalExpense').textContent = total.toLocaleString() + '원';
         }
 
-        function renderIngredients() { document.getElementById('ingredientList').innerHTML = ingredients.map(i => `<div class="simple-item"><span>${i.name}</span><button class="delete-btn" onclick="deleteIng(${i.id})">&times;</button></div>`).join(''); }
-        function renderShoppingList() { document.getElementById('shoppingList').innerHTML = shoppingList.map(s => `<div class="shopping-item" onclick="moveToFridge(${s.id})"><span>🛒 ${s.name}</span><button class="delete-btn" onclick="event.stopPropagation(); deleteShop(${s.id})">&times;</button></div>`).join(''); }
-        function deleteIng(id) { ingredients = ingredients.filter(i => i.id !== id); saveData(); }
-        function deleteShop(id) { shoppingList = shoppingList.filter(s => s.id !== id); saveData(); }
-        function deleteExp(id) { expenses = expenses.filter(e => e.id !== id); saveData(); }
-        
         function renderCalendar() {
             const calendar = document.getElementById('calendar');
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
+            const year = currentDate.getFullYear(), month = currentDate.getMonth();
             document.getElementById('monthDisplay').textContent = `${year}년 ${month + 1}월`;
             calendar.innerHTML = '';
             ['일','월','화','수','목','금','토'].forEach(d => calendar.innerHTML += `<div class="calendar-header">${d}</div>`);
@@ -252,7 +293,12 @@
                 const isToday = new Date().toISOString().slice(0,10) === dateKey;
                 let html = `<span class="day-number">${d}</span><div class="meal-preview">`;
                 let dots = '<div class="meal-dot-container">';
-                if(meals[dateKey]) meals[dateKey].forEach(m => { html += `<div class="meal-item">${m}</div>`; dots += `<div class="meal-dot"></div>`; });
+                if(meals[dateKey]) meals[dateKey].forEach(m => {
+                    const text = typeof m === 'object' ? m.text : m;
+                    const colorClass = typeof m === 'object' ? `color-${m.color}` : 'color-green';
+                    html += `<div class="meal-item ${colorClass}">${text}</div>`;
+                    dots += `<div class="meal-dot ${colorClass}"></div>`;
+                });
                 html += '</div>' + dots + '</div>';
                 const div = document.createElement('div');
                 div.className = `calendar-day ${isToday ? 'today' : ''}`;
@@ -262,46 +308,24 @@
             }
         }
 
-        function addMeal() { const v = document.getElementById('mealInput').value.trim(); if(!v) return; if(!meals[selectedDateKey]) meals[selectedDateKey] = []; meals[selectedDateKey].push(v); document.getElementById('mealInput').value = ''; renderMealTags(); saveData(); }
-        function openMealModal(k, d) { document.getElementById('modalDate').textContent = `${currentDate.getMonth()+1}월 ${d}일 식단`; renderMealTags(); document.getElementById('mealModal').classList.add('active'); setTimeout(() => document.getElementById('mealInput').focus(), 100); }
-        function closeModal() { document.getElementById('mealModal').classList.remove('active'); }
-        function renderMealTags() { document.getElementById('mealTags').innerHTML = (meals[selectedDateKey] || []).map((m, i) => `<div class="meal-tag">${m}<button onclick="removeMeal(${i})">&times;</button></div>`).join(''); }
         function removeMeal(i) { meals[selectedDateKey].splice(i, 1); renderMealTags(); saveData(); }
-        function showMobileMeal(k, d) { document.getElementById('selected-date-text').textContent = `${d}일 식단`; document.getElementById('selected-meal-list').textContent = (meals[k] || []).join(', ') || '식단이 없습니다.'; }
-        function addIngredient() { const v = document.getElementById('ingredientName').value; if(v) { ingredients.push({id:Date.now(), name:v}); document.getElementById('ingredientName').value = ''; saveData(); } }
-        function addShoppingItem() { const v = document.getElementById('shoppingItem').value; if(v) { shoppingList.push({id:Date.now(), name:v}); document.getElementById('shoppingItem').value = ''; saveData(); } }
-        function addExpense() { 
-            const d = document.getElementById('expenseDate').value, it = document.getElementById('expenseItem').value, am = parseInt(document.getElementById('expenseAmount').value);
-            if(d && it && am) { expenses.push({id:Date.now(), date:d, item:it, amount:am}); document.getElementById('expenseItem').value = ''; document.getElementById('expenseAmount').value = ''; saveData(); }
-        }
-        function searchMeal() {
-            const k = document.getElementById('mealSearch').value.toLowerCase(), res = document.getElementById('searchResults');
-            res.innerHTML = ''; if(!k) return;
-            for(let d in meals) { const f = meals[d].filter(m => m.toLowerCase().includes(k)); if(f.length) res.innerHTML += `<div class="item"><div style="font-size:0.8rem; color:var(--primary)">${d}</div><div>${f.join(', ')}</div></div>`; }
-        }
-        function backupData() {
-            const data = { meals, ingredients, shoppingList, expenses, backupDate: new Date().toLocaleString() };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url; link.download = `식단백업_${new Date().toISOString().slice(0,10)}.json`; link.click();
-            URL.revokeObjectURL(url);
-        }
-        function restoreData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (confirm('데이터를 덮어쓰시겠습니까?')) {
-                        meals = data.meals || {}; ingredients = data.ingredients || []; shoppingList = data.shoppingList || []; expenses = data.expenses || [];
-                        saveData(); alert('복원 완료!'); closeAdminMode();
-                    }
-                } catch (err) { alert('오류 발생'); }
-            };
-            reader.readAsText(file);
-        }
+        function openMealModal(k, d) { document.getElementById('modalDate').textContent = `${currentDate.getMonth()+1}월 ${d}일 식단 관리`; renderMealTags(); document.getElementById('mealModal').classList.add('active'); setTimeout(() => document.getElementById('mealInput').focus(), 100); }
+        function closeModal() { document.getElementById('mealModal').classList.remove('active'); }
+        function showMobileMeal(k, d) { const list = (meals[k] || []).map(m => typeof m === 'object' ? m.text : m); document.getElementById('selected-date-text').textContent = `${d}일 식단`; document.getElementById('selected-meal-list').textContent = list.join(', ') || '식단이 없습니다.'; }
+        function moveToFridge(id) { const idx = shoppingList.findIndex(s => s.id === id); if (idx > -1) { const item = shoppingList.splice(idx, 1)[0]; ingredients.push({id: Date.now(), name: item.name}); saveData(); } }
+        function setSort(type) { currentSort = type; document.getElementById('sortNew').classList.toggle('active', type === 'new'); document.getElementById('sortOld').classList.toggle('active', type === 'old'); renderExpenses(); }
+        function renderExpenses() { let total = 0, sorted = [...expenses]; if (currentSort === 'new') sorted.sort((a,b) => new Date(b.date) - new Date(a.date)); else sorted.sort((a,b) => new Date(a.date) - new Date(b.date)); document.getElementById('expenseList').innerHTML = sorted.map(e => { total += e.amount; return `<div class="item"><div style="font-size:0.75rem; color:#888">${e.date.slice(5)}</div><div style="flex:1;margin-left:10px">${e.item}</div><b>${e.amount.toLocaleString()}원</b><button class="delete-btn" onclick="deleteExp(${e.id})">&times;</button></div>`; }).join(''); document.getElementById('totalExpense').textContent = total.toLocaleString() + '원'; }
+        function renderIngredients() { document.getElementById('ingredientList').innerHTML = ingredients.map(i => `<div class="simple-item"><span>${i.name}</span><button class="delete-btn" onclick="deleteIng(${i.id})">&times;</button></div>`).join(''); }
+        function renderShoppingList() { document.getElementById('shoppingList').innerHTML = shoppingList.map(s => `<div class="shopping-item" onclick="moveToFridge(${s.id})"><span>🛒 ${s.name}</span><button class="delete-btn" onclick="event.stopPropagation(); deleteShop(${s.id})">&times;</button></div>`).join(''); }
+        function deleteIng(id) { ingredients = ingredients.filter(i => i.id !== id); saveData(); }
+        function deleteShop(id) { shoppingList = shoppingList.filter(s => s.id !== id); saveData(); }
+        function deleteExp(id) { expenses = expenses.filter(e => e.id !== id); saveData(); }
+        function addIngredient() { const v = document.getElementById('ingredientName').value.trim(); if(v) { ingredients.push({id:Date.now(), name:v}); document.getElementById('ingredientName').value = ''; saveData(); } }
+        function addShoppingItem() { const v = document.getElementById('shoppingItem').value.trim(); if(v) { shoppingList.push({id:Date.now(), name:v}); document.getElementById('shoppingItem').value = ''; saveData(); } }
+        function addExpense() { const d = document.getElementById('expenseDate').value, it = document.getElementById('expenseItem').value, am = parseInt(document.getElementById('expenseAmount').value); if(d && it && am) { expenses.push({id:Date.now(), date:d, item:it, amount:am}); document.getElementById('expenseItem').value = ''; document.getElementById('expenseAmount').value = ''; saveData(); } }
+        function searchMeal() { const k = document.getElementById('mealSearch').value.toLowerCase(), res = document.getElementById('searchResults'); res.innerHTML = ''; if(!k) return; for(let d in meals) { const f = meals[d].filter(m => (typeof m === 'object' ? m.text : m).toLowerCase().includes(k)); if(f.length) res.innerHTML += `<div class="item"><div style="font-size:0.8rem; color:var(--primary)">${d}</div><div>${f.map(m=>typeof m==='object'?m.text:m).join(', ')}</div></div>`; } }
+        function backupData() { const data = { meals, ingredients, shoppingList, expenses, backupDate: new Date().toLocaleString() }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `식단백업_${new Date().toISOString().slice(0,10)}.json`; link.click(); URL.revokeObjectURL(url); }
+        function restoreData(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const data = JSON.parse(e.target.result); if (confirm('데이터를 덮어쓰시겠습니까?')) { meals = data.meals || {}; ingredients = data.ingredients || []; shoppingList = data.shoppingList || []; expenses = data.expenses || []; saveData(); alert('복원 완료!'); closeAdminMode(); } } catch (err) { alert('오류 발생'); } }; reader.readAsText(file); }
         function openAdminMode() { document.getElementById('adminModal').classList.add('active'); }
         function closeAdminMode() { document.getElementById('adminModal').classList.remove('active'); }
         function changeMonth(d) { currentDate.setMonth(currentDate.getMonth() + d); renderCalendar(); }
